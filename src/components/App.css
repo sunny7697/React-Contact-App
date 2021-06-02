@@ -23,5 +23,8 @@ i.icon {
 }
 
 .right {
-  float: right;
+  float: right !important;
+}
+.center-div {
+  text-align: center;
 }
