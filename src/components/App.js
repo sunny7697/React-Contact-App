@@ -7,6 +7,7 @@ import Header from './Header';
 import AddContact from './AddContact'
 import ContactList from './ContactList'
 import ContactDetails from './ContactDetails'
+import EditContact from './EditContact'
 
 function App() {
   const Local_Storage_Key = "contacts";
@@ -19,13 +20,32 @@ function App() {
   }
 
   // add contact in the contact list
-  const addContactHandler = contact => {
-    setContacts([...contacts,{id: uuid(), ...contact}]);
+  const addContactHandler = async contact => {
+
+    const request = {
+      id: uuid(),
+      ...contact,
+    }
+
+    const response = await api.post("/contacts", request);
+    setContacts([...contacts,response.data]);
     console.log(contact);
   }
 
+  // update contact in the contact list
+  const updateContactHandler = async (contact) => {
+    const response = await api.put(`/contacts/${contact.id}`, contact)
+    const {id, name, email} = response.data;
+    setContacts(
+      contacts.map(contact => {
+        return contact.id === id ? {...response.data} : contact;
+      })
+    )
+  }
+
   // remove specific contact from the contact list
-  const removeContactHandler = id => {
+  const removeContactHandler = async id => {
+    await api.delete(`/contacts/${id}`);
     const newContactList = contacts.filter(contact => {
       return contact.id !== id
     })
@@ -57,7 +77,11 @@ function App() {
         <Header />
         <Switch>
           <Route path="/" exact render={(props) => (<ContactList {...props}  contacts={contacts} getContactId={removeContactHandler}  />)} />
+
           <Route path="/add" render={(props) => (<AddContact {...props} addContactHandler={addContactHandler} />)} />
+
+          <Route path="/edit" render={(props) => (<EditContact {...props} updateContactHandler={updateContactHandler} />)} />
+
           <Route path='/contact/:id' component={ContactDetails} />
         </Switch>
       </Router>
