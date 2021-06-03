@@ -12,6 +12,8 @@ import EditContact from './EditContact'
 function App() {
   const Local_Storage_Key = "contacts";
   const [contacts, setContacts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
 
   // Retrieve contacts from json-server
   const retrieveContacts = async () => {
@@ -35,7 +37,7 @@ function App() {
   // update contact in the contact list
   const updateContactHandler = async (contact) => {
     const response = await api.put(`/contacts/${contact.id}`, contact)
-    const {id, name, email} = response.data;
+    const {id} = response.data;
     setContacts(
       contacts.map(contact => {
         return contact.id === id ? {...response.data} : contact;
@@ -51,6 +53,19 @@ function App() {
     })
 
     setContacts(newContactList);
+  }
+
+  // 
+  const searchHandler = (searchTerm) => {
+    setSearchTerm(searchTerm);
+    if(searchTerm !== "") {
+      const newContactList = contacts.filter(contact => {
+        return Object.values(contact).join(" ").toLowerCase().includes(searchTerm.toLowerCase());
+      })
+      setSearchResults(newContactList);
+    } else {
+      setSearchResults(contacts);
+    }
   }
 
   // after every page refresh or load, get the contacts stored in the local storage
@@ -76,7 +91,7 @@ function App() {
       <Router>
         <Header />
         <Switch>
-          <Route path="/" exact render={(props) => (<ContactList {...props}  contacts={contacts} getContactId={removeContactHandler}  />)} />
+          <Route path="/" exact render={(props) => (<ContactList {...props}  contacts={searchTerm.length < 1 ? contacts : searchResults} getContactId={removeContactHandler} term={searchTerm} searchKeyword={searchHandler} />)} />
 
           <Route path="/add" render={(props) => (<AddContact {...props} addContactHandler={addContactHandler} />)} />
 
